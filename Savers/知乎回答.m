@@ -36,11 +36,8 @@ Handler["sup", p_, _] := Module[
 (*Saver*)
 
 
-Saver[l_List] := Module[
-	{ans},
-	CopyToClipboard[ans = StringRiffle[Saver /@ l, "\n"]];
-	Return@ans
-];
+Saver[l_List] := StringRiffle[Saver /@ l, "\n"];
+Saver[s_String] := Saver[ToExpression@Last@StringSplit[s, {"/"}]];
 Saver[i_Integer] := Module[
 	{raw, text, ans},
 	raw = Import["https://www.zhihu.com/api/v4/answers/" <> ToString@i <> "?include=data[*].content", "RawJSON"];
