@@ -27,6 +27,7 @@ Handler["div", {"class" -> "reveal-work-wrap text-center", "data-index" -> i_}, 
 ]
 Handler["p", {"class" -> "packaging-competition"}, text_] := StringJoin[text];
 Handler["p", {"class" -> "txt-con"}, text_] := StringJoin[text];
+Handler["p", {}, text_] := StringRiffle[text,"\n\n"];
 Handler["br", __] := "\n\n";
 Handler["input", __] := Nothing;
 Handler["img", p_, {}] := Module[
@@ -34,4 +35,32 @@ Handler["img", p_, {}] := Module[
 	If[!MissingQ@proto["src"],
 		Return[StringTemplate["![](`1`)"][First@StringSplit[proto["src"], "@"]]]
 	];
+];
+
+
+
+(* ::Section:: *)
+(*Saver*)
+
+
+Saver[l_List] := Module[
+	{ans = StringRiffle[Saver /@ l, "\n"]},
+	CopyToClipboard@ans;
+	Return@ans
+];
+Saver[url_String] := Module[
+	{raw, xml, ans},
+	raw = Import[url, {"HTML", "XMLObject"}];
+	xml = Switch[
+		URLParse[url]["Path"][[2]],
+		"work", FirstCase[raw, XMLElement["div", {"class" -> "work-center-con"}, s_] :> s, "", Infinity],
+		"article", FirstCase[raw, XMLElement["div", {"class" -> "article-content-wraper"}, s_] :> s, "", Infinity],
+		_, Handler["div", {"class" -> "txt-con"}, {"nothing"}]
+	];
+	ans = StringReplace[
+		StringTrim@StringJoin[xml /. XMLElement -> Handler],
+		RegularExpression["\\n\\s+"] :> "\n\n"
+	];
+	CopyToClipboard[ans];
+	Return[ans]
 ];
